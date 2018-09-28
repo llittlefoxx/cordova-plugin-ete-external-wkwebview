@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cordova-plugin-ete-external-wkwebview" version="2.1.5" 
+	xmlns="http://apache.org/cordova/ns/plugins/1.0" 
+	xmlns:android="http://schemas.android.com/apk/res/android">
+	<name>WebViewOverlayPlugin</name>
+	<js-module name="WebViewOverlayPlugin" src="www/WebViewOverlayPlugin.js">
+		<clobbers target="cordova.plugins.WebViewOverlayPlugin" />
+	</js-module>
+	<platform name="ios">
+		<config-file parent="/*" target="config.xml">
+			<feature name="WebViewOverlayPlugin">
+				<param name="ios-package" value="WebViewOverlayPlugin" />
+			</feature>
+		</config-file>
+
+		<resource-file src="src/ios/res/close/wvo_close.png" />
+		<resource-file src="src/ios/res/close/wvo_close@2x.png" />
+		<resource-file src="src/ios/res/close/wvo_close@3x.png" />
+		<resource-file src="src/ios/res/next/wvo_next.png" />
+		<resource-file src="src/ios/res/next/wvo_next@2x.png" />
+		<resource-file src="src/ios/res/next/wvo_next@3x.png" />
+		<resource-file src="src/ios/res/previous/wvo_previous.png" />
+		<resource-file src="src/ios/res/previous/wvo_previous@2x.png" />
+		<resource-file src="src/ios/res/previous/wvo_previous@3x.png" />
+
+		<source-file src="src/ios/WebViewOverlayPlugin.h" />
+		<source-file src="src/ios/WebViewOverlayPlugin.m" />
+		<source-file src="src/ios/WebViewCustomNavigationController.m" />
+		<source-file src="src/ios/WebViewCustomNavigationController.h" />
+	</platform>
+</plugin>
