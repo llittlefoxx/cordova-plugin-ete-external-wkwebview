@@ -1,0 +1,50 @@
+{
+  "_from": "cordova-plugin-ete-external-wkwebview@^2.1.3",
+  "_id": "cordova-plugin-ete-external-wkwebview@2.1.4",
+  "_inBundle": false,
+  "_integrity": "sha512-jMXW+PF0JmRRd5IQvrqak85VidqQvh/DLXb7+n3//jVEFbKgRWMXa5aat1cNr7Hn8x/etgoqaIGbRMgj91Sdig==",
+  "_location": "/cordova-plugin-ete-external-web-pages",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "range",
+    "registry": true,
+    "raw": "cordova-plugin-ete-external-web-pages@^2.1.2",
+    "name": "cordova-plugin-ete-external-web-pages",
+    "escapedName": "cordova-plugin-ete-external-web-pages",
+    "rawSpec": "^2.1.2",
+    "saveSpec": null,
+    "fetchSpec": "^2.1.2"
+  },
+  "_requiredBy": [
+    "#USER",
+    "/",
+    "/@switch-container/bridge-cordova"
+  ],
+  "_resolved": "https://registry.npmjs.org/cordova-plugin-ete-external-wkwebview/-/cordova-plugin-ete-external-wkwebview-2.1.4.tgz",
+  "_shasum": "cddbdeeb33fa5d8c4a7ab2e2baac73aa62c5bca1",
+  "_spec": "cordova-plugin-ete-external-web-pages@^2.1.2",
+  "_where": "git@github.com:llittlefoxx/cordova-plugin-ete-external-wkwebview.git",
+  "author": {
+    "name": "Mohamed ali Tlili"
+  },
+  "bundleDependencies": false,
+  "cordova": {
+    "id": "cordova-plugin-ete-external-web-pages",
+    "platforms": [
+      "ios"
+    ]
+  },
+  "deprecated": false,
+  "description": "Cordova plugin for ios which opens exernal webviews",
+  "keywords": [
+    "ecosystem:cordova",
+    "cordova-ios"
+  ],
+  "license": "MIT",
+  "name": "cordova-plugin-ete-external-web-pages",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:llittlefoxx/cordova-plugin-ete-external-wkwebview.git"
+  },
+  "version": "2.1.5"
+}
