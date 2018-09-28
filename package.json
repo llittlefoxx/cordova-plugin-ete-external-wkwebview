@@ -41,7 +41,7 @@
     "cordova-ios"
   ],
   "license": "MIT",
-  "name": "cordova-plugin-ete-external-web-pages",
+  "name": "cordova-plugin-ete-external-wkwebview",
   "repository": {
     "type": "git",
     "url": "git@github.com:llittlefoxx/cordova-plugin-ete-external-wkwebview.git"
