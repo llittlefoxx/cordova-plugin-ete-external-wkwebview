@@ -90,27 +90,23 @@
     }
     
     self.webViewController.navigationDelegate = self;
-    self.webViewController.callbackIdCopy = self.callbackId;
-    NSLog(@"%@", self.webViewController.callbackIdCopy);
 }
 - (void)didFinishNavigation1: (WKWebView*)theWebView
-{/*
+{
     if (self.callbackId != nil) {
-        NSLog(@"LOAD STOPPED FULL %@",self.callbackId );
-        // TODO: It would be more useful to return the URL the page is actually on (e.g. if it's been redirected).
+            // TODO: It would be more useful to return the URL the page is actually on (e.g. if it's been redirected).
+            NSString* url = [theWebView URL].absoluteString;
+            
+            NSLog(@"Requested url: %@", url);
+            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
+                                                          messageAsDictionary:@{@"type":@"loadstop", @"url":url}];
+            [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+            
+            [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
         
-        NSString* url = [theWebView.URL absoluteString];
-       // [NSThread sleepForTimeInterval:0.5f];
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                                      messageAsDictionary:@{@"type":@"loadstop", @"url":url}];
-        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
-        NSLog(@"RESULT SENT TO PLUGIN  %@", pluginResult);
-    }else {
-        
-        NSLog(@"LOAD STOPPED EMPTY  %@", self.callbackId);
-    }*/
+    }
 }
+
 - (void)close:(CDVInvokedUrlCommand*)command {
     NSLog(@"WebViewOverlayPlugin :: close");
     
@@ -324,51 +320,6 @@
     
     [self updateToolbarButtons];
 }
-
-/*
-- (void)didFinishNavigation:(WKWebView*)theWebView
-{
-    if (self.callbackIdCopy != nil) {
-        NSString* url = [theWebView.URL absoluteString];
-        if(url == nil){
-            url = @"";
-        }
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                                      messageAsDictionary:@{@"type":@"loadstop", @"url":url}];
-        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-        
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackIdCopy];
-    }
-}
-/*
--(void)didFinishNavigation:(WKWebView*)theWebView {
-
-    if (self.callbackIdCopy != nil) {
-        // TODO: It would be more useful to return the URL the page is actually on (e.g. if it's been redirected).
-        NSString* url = [self.url absoluteString];
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                                      messageAsDictionary:@{@"type":@"loadstop", @"url":url}];
-        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-        
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackIdCopy];
-    }
-    
-    if (self.title == nil){
-        
-         [self.webView evaluateJavaScript:@"document.title"  completionHandler:^(id result, NSError *error) {
-            if (error == nil) {
-                if (result != nil) {
-                    self.title =result;
-                    NSLog(@"%@", result);
-                    [self updateToolbarButtons];
-                }
-            } else {
-                NSLog(@"getting document.title error : %@ ", error.localizedDescription);
-            }
-        }];
-    }
-}
-*/
 
 - (void)updateToolbarButtons {
     self.buttonBack.enabled = self.webView.canGoBack;
