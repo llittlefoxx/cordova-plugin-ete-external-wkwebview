@@ -38,10 +38,6 @@ WebViewOverlayPlugin.prototype.open = function (successCallback, urlString, webV
 WebViewOverlayPlugin.prototype.close = function() {
     cordova.exec(null, null, 'WebViewOverlayPlugin', 'close', []);
 };
-// closing the external webview
-WebViewOverlayPlugin.prototype.close = function() {
-    cordova.exec(null, null, 'WebViewOverlayPlugin', 'close', []);
-};
 
 WebViewOverlayPlugin.prototype.injectScript = function(codeToBeInjected, cb) {
     cordova.exec(cb, null, 'WebViewOverlayPlugin', 'injectScript', [codeToBeInjected.code, !!cb]);
