@@ -403,112 +403,25 @@
         {
             [self.navigationController dismissViewControllerAnimated:NO completion:nil];
             
-            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"Close function executed"];
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:self.command.callbackId];
+            if ([self.navigationController isKindOfClass:[WebViewCustomNavigationController class]]) {
+                ((WebViewCustomNavigationController*)self.navigationController).allowDismiss = YES;
+            }
+            if ([self.navigationController.viewControllers indexOfObject:self] != 0) {
+                // we are pushed on a outer navigationcontroller and so we pop just ourself
+                [self.navigationController popViewControllerAnimated:NO];
+                [self.navigationController setNavigationBarHidden:YES animated:NO];
+                [self.navigationController setToolbarHidden:YES animated:NO];
+            } else {
+                // we are the root and that is only possible if the navigation controller was manually generated in the plugin
+                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"Successful in closing WebOverlayingPlugin"];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:self.command.callbackId];
+            }
         }
-        decisionHandler(WKNavigationActionPolicyCancel);
+        decisionHandler(WKNavigationActionPolicyAllow);
         return;
     }
     
     decisionHandler(WKNavigationActionPolicyAllow);
-}
-
-- (BOOL)webView:(WKWebView *)webView2 shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType {
-    
-    NSURL* url = request.URL;
-    if ([[url scheme] isEqualToString:@"gap-iab"]) {
-        NSString* scriptCallbackId = [url host];
-        CDVPluginResult* pluginResult = nil;
-        
-        NSString* scriptResult = [url path];
-        NSError* __autoreleasing error = nil;
-        
-        // The message should be a JSON-encoded array of the result of the script which executed.
-        if ((scriptResult != nil) && ([scriptResult length] > 1)) {
-            scriptResult = [scriptResult substringFromIndex:1];
-            NSData* decodedResult = [NSJSONSerialization JSONObjectWithData:[scriptResult dataUsingEncoding:NSUTF8StringEncoding] options:kNilOptions error:&error];
-            if ((error == nil) && [decodedResult isKindOfClass:[NSArray class]]) {
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:(NSArray*)decodedResult];
-            } else {
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_JSON_EXCEPTION];
-            }
-        } else {
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:@[]];
-        }
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:scriptCallbackId];
-        return NO;
-    }
-    
-    NSString *requestString = [[request URL] absoluteString];
-    
-    //NSLog(@"request : %@",requestString);
-    
-    if ([requestString hasPrefix:@"js-frame:"]) {
-        
-        NSArray *components = [requestString componentsSeparatedByString:@":"];
-        
-        NSString *function = (NSString*)[components objectAtIndex:1];
-        if ([function isEqualToString:@"closeMeNow"])
-        {
-            [self.navigationController dismissViewControllerAnimated:NO completion:nil];
-            
-            CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"Close function executed"];
-            [self.commandDelegate sendPluginResult:pluginResult callbackId:self.command.callbackId];
-        }
-        
-        return NO;
-    }
-    
-    return YES;
-}
-
-
-- (void)userContentController:(nonnull WKUserContentController *)userContentController didReceiveScriptMessage:(nonnull WKScriptMessage *)message {
-    
-}
-
-- (void)encodeWithCoder:(nonnull NSCoder *)aCoder {
-
-}
-
-- (void)traitCollectionDidChange:(nullable UITraitCollection *)previousTraitCollection {
-
-}
-
-- (void)preferredContentSizeDidChangeForChildContentContainer:(nonnull id<UIContentContainer>)container {
-
-}
-
-- (CGSize)sizeForChildContentContainer:(nonnull id<UIContentContainer>)container withParentContainerSize:(CGSize)parentSize {
-
-}
-
-- (void)systemLayoutFittingSizeDidChangeForChildContentContainer:(nonnull id<UIContentContainer>)container {
-    
-}
-
-- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(nonnull id<UIViewControllerTransitionCoordinator>)coordinator {
-    
-}
-
-- (void)willTransitionToTraitCollection:(nonnull UITraitCollection *)newCollection withTransitionCoordinator:(nonnull id<UIViewControllerTransitionCoordinator>)coordinator {
-    
-}
-
-- (void)didUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context withAnimationCoordinator:(nonnull UIFocusAnimationCoordinator *)coordinator {
-    
-}
-
-- (void)setNeedsFocusUpdate {
-    
-}
-
-- (BOOL)shouldUpdateFocusInContext:(nonnull UIFocusUpdateContext *)context {
-    
-}
-
-- (void)updateFocusIfNeeded {
-    
 }
 
 @end
