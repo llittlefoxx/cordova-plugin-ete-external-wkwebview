@@ -237,10 +237,10 @@
 
 - (void)webView:(WKWebView *)theWebView didFinishNavigation:(WKNavigation *)navigation
 {
+    [self updateToolbarButtons];
     [self.navigationDelegate didFinishNavigation1:theWebView];
-  //
-  /*
-    if (self.title == nil){
+   
+  /*  if (self.title == nil){
         
         [self.webView evaluateJavaScript:@"document.title"  completionHandler:^(id result, NSError *error) {
             if (error == nil) {
@@ -254,7 +254,7 @@
             }
         }];
     }
-    
+   
     if (self.callbackIdCopy != nil) {
         NSLog(@"LOAD STOPPED FULL %@",self.callbackIdCopy );
         // TODO: It would be more useful to return the URL the page is actually on (e.g. if it's been redirected).
