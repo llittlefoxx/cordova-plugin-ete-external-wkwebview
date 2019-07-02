@@ -38,11 +38,10 @@
 
 
 @interface WebViewOverlayViewController : UIViewController <WKNavigationDelegate>
-
 @property (nonatomic, strong) id commandDelegate;
 @property (nonatomic, strong) WKWebView* webView;
 @property (nonatomic, strong) CDVInvokedUrlCommand* command;
-@property (weak, nonatomic) id<WebViewOverlayDelegate> overlayDelegate;
+@property (nonatomic, weak) id<WebViewOverlayDelegate> overlayDelegate;
 @property (nonatomic, weak) WebViewOverlayPlugin* navigationDelegate;
 
 @property (nonatomic, copy) NSString* callbackIdCopy;
