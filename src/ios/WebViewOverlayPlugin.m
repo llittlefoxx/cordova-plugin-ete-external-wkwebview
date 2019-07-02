@@ -7,19 +7,10 @@
 
 @interface WebViewOverlayPlugin()
 
-@property (nonatomic, weak) UINavigationController* internalNavigationController;
-@property (nonatomic, weak) WebViewOverlayViewController* webViewController;
-
-
 @end
 @implementation WebViewOverlayPlugin
 
 - (void)closeWebView {
-    if (self.internalNavigationController) {
-        [self.internalNavigationController dismissViewControllerAnimated:NO completion:nil];
-    }
-    self.webViewController = nil;
-    self.internalNavigationController = nil;
 }
 
 - (void)open:(CDVInvokedUrlCommand*)command {
@@ -55,14 +46,12 @@
     
     UINavigationController* navController;
     WebViewOverlayViewController* webViewController = [[WebViewOverlayViewController alloc] initWithURL:url Parameters:nil Zoom:zoomCommandResult];
-    self.webViewController = webViewController;
     if (self.viewController.navigationController != nil) {
         navController = self.viewController.navigationController;
         [self.viewController.navigationController pushViewController:webViewController animated:NO];
     } else {
         webViewController.overlayDelegate = self;
         navController = [[WebViewCustomNavigationController alloc] initWithRootViewController:webViewController];
-        self.internalNavigationController = navController;
         [self.viewController presentViewController:navController animated:NO completion:nil];
         NSLog(@"PRESENTED VC: %@", self.viewController.presentedViewController);
         NSLog(@"PRESENTED VC CLASS: %@", self.viewController.presentedViewController.class);
@@ -88,8 +77,8 @@
         [navController setToolbarHidden : YES animated : NO];
         
     }
-    
-    self.webViewController.navigationDelegate = self;
+    // CHANGED
+    webViewController.navigationDelegate = self;
 }
 - (void)didFinishNavigation1: (WKWebView*)theWebView
 {
@@ -100,7 +89,7 @@
             NSLog(@"Requested url: %@", url);
             CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
                                                           messageAsDictionary:@{@"type":@"loadstop", @"url":url}];
-            [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
+           [pluginResult setKeepCallbackAsBool:true];
             
             [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackId];
         
@@ -110,21 +99,27 @@
 - (void)close:(CDVInvokedUrlCommand*)command {
     NSLog(@"WebViewOverlayPlugin :: close");
     
-    [self.webViewController.navigationController dismissViewControllerAnimated:NO completion:nil];
-    
+    // CHANGED
+    [self.viewController dismissViewControllerAnimated:NO completion:nil];
     CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    [pluginResult setKeepCallbackAsBool:true];
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
+-(void)hide:(CDVInvokedUrlCommand*)command
+{
+    
+}
+-(void)show:(CDVInvokedUrlCommand*)command
+{
+    [[self webViewController].webView becomeFirstResponder];
+}
 - (void)injectScript:(CDVInvokedUrlCommand*)command
 {
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         NSString* jsCode = [NSString stringWithFormat:@"%@", command.arguments[0]];
-        
-        // NSString* jsCodeCall = @"myFunction();";
-        
-        //[self.webViewController.webView stringByEvaluatingJavaScriptFromString:jsCode];
-        [self.webViewController.webView evaluateJavaScript:jsCode completionHandler:^(id result, NSError *error) {
+       
+        [[self webViewController].webView evaluateJavaScript:jsCode completionHandler:^(id result, NSError *error) {
             if (error == nil) {
                 if (result != nil) {
                     NSLog(@"%@", result);
@@ -133,10 +128,9 @@
                     for (NSString* key in json.allKeys) {
                         NSLog(@"RESULT %@ = %@", key, json[key]);
                     }
-                    
                     CDVPluginResult *pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsDictionary:@{@"result": result}];
+                   [pluginResult setKeepCallbackAsBool:true];
                     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-                    
                 }
             } else {
                 NSLog(@"evaluateJavaScript error : %@ ", error.localizedDescription);
@@ -146,21 +140,11 @@
     });
     
 }
-/*
- - (void)injectScript:(CDVInvokedUrlCommand*)command {
- NSString* js = command.arguments[0];
- dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
- [self.webViewController.webView stringByEvaluatingJavaScriptFromString:@"myFunction = function(){ return {a : \"Test\"};}"];
- NSString* result = [self.webViewController.webView stringByEvaluatingJavaScriptFromString:@"JSON.stringify(myFunction());"];
- NSLog(@"JS RESULT: %@", result);
- });
- }
- */
-
 - (void)injectDeferredObject:(NSString*)source withWrapper:(NSString*)jsWrapper
 {
     // Ensure an iframe bridge is created to communicate with the CDVInAppBrowserViewController
-    [self.webViewController.webView evaluateJavaScript:@"(function(d){_cdvIframeBridge=d.getElementById('_cdvIframeBridge');if(!_cdvIframeBridge) {var e = _cdvIframeBridge = d.createElement('iframe');e.id='_cdvIframeBridge'; e.style.display='none';d.body.appendChild(e);}})(document)" completionHandler:^(id result, NSError *error) {
+    // CHANGED
+    [[self webViewController].webView evaluateJavaScript:@"(function(d){_cdvIframeBridge=d.getElementById('_cdvIframeBridge');if(!_cdvIframeBridge) {var e = _cdvIframeBridge = d.createElement('iframe');e.id='_cdvIframeBridge'; e.style.display='none';d.body.appendChild(e);}})(document)" completionHandler:^(id result, NSError *error) {
         if (error == nil) {
             if (result != nil) {
                 NSLog(@"%@", result);
@@ -169,20 +153,18 @@
             NSLog(@"evaluateJavaScript error : %@ ", error.localizedDescription);
         }
     }];
-    /*
-     if (jsWrapper != nil) {
-     NSData* jsonData = [NSJSONSerialization dataWithJSONObject:@[source] options:0 error:nil];
-     NSString* sourceArrayString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-     if (sourceArrayString) {
-     NSString* sourceString = [sourceArrayString substringWithRange:NSMakeRange(1, [sourceArrayString length] - 2)];
-     NSString* jsToInject = [NSString stringWithFormat:jsWrapper, sourceString];
-     [self.webViewController.webView stringByEvaluatingJavaScriptFromString:jsToInject];
-     }
-     } else {
-     [self.webViewController.webView stringByEvaluatingJavaScriptFromString:source];
-     }*/
 }
 
+- (void)dealloc
+{
+    NSLog(@"Gone - Custom Plugin");
+}
+
+#pragma mark - Getter webview
+// CHANGED
+- (WebViewOverlayViewController *)webViewController {
+    return ((UINavigationController *)self.viewController.presentedViewController).viewControllers.firstObject;
+}
 
 @end
 
@@ -226,12 +208,6 @@
         }
         finished = YES;
     }];
-    
-    /* while (!finished)
-     {
-     [[NSRunLoop currentRunLoop] runMode:NSDefaultRunLoopMode beforeDate:[NSDate distantFuture]];
-     }
-     */
     return resultString;
 }
 
@@ -239,54 +215,20 @@
 {
     [self updateToolbarButtons];
     [self.navigationDelegate didFinishNavigation1:theWebView];
-   
-  /*  if (self.title == nil){
-        
-        [self.webView evaluateJavaScript:@"document.title"  completionHandler:^(id result, NSError *error) {
-            if (error == nil) {
-                if (result != nil) {
-                    self.title =result;
-                    NSLog(@"%@", result);
-                    [self updateToolbarButtons];
-                }
-            } else {
-                NSLog(@"getting document.title error : %@ ", error.localizedDescription);
-            }
-        }];
-    }
-   
-    if (self.callbackIdCopy != nil) {
-        NSLog(@"LOAD STOPPED FULL %@",self.callbackIdCopy );
-        // TODO: It would be more useful to return the URL the page is actually on (e.g. if it's been redirected).
-        
-        NSString* url = [theWebView.URL absoluteString];
-        CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK
-                                                      messageAsDictionary:@{@"type":@"loadstop", @"url":url}];
-        [pluginResult setKeepCallback:[NSNumber numberWithBool:YES]];
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:self.callbackIdCopy];
-        NSLog(@"RESULT SENT TO PLUGIN  %@", pluginResult);
-    }else {
-        
-        NSLog(@"LOAD STOPPED EMPTY  %@", self.callbackIdCopy);
-    }
-*/
 }
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // [self.navigationController setToolbarHidden : YES animated : YES];
     WKWebViewConfiguration* configuration = [[WKWebViewConfiguration alloc] init];
     configuration.websiteDataStore = WKWebsiteDataStore.defaultDataStore;
     configuration.processPool = [[CDVWKProcessPoolFactory sharedFactory] sharedProcessPool];
     self.webView = [[WKWebView alloc] initWithFrame:self.view.frame configuration:configuration];
     
-    //self.webView = [[WKWebView alloc] initWithFrame:self.view.frame];
     self.webView.scrollView.bounces = NO;
     [self.view addSubview:self.webView];
     [self.webView setBackgroundColor:[UIColor whiteColor]];
     [self.webView setOpaque:NO];
     NSLog(@"***** %d",self.zoomable);
-   //yo self.webView.scalesPageToFit = self.zoomable;
     self.webView.autoresizingMask = self.view.autoresizingMask;
     [self.view addSubview:self.webView];
     
@@ -295,8 +237,6 @@
     [self configureWebView];
     self.webView.navigationDelegate = self;
 }
-
-
 
 - (void)configureWebView {
     
@@ -311,11 +251,8 @@
     UIBarButtonItem * buttonClose =[[UIBarButtonItem alloc]initWithImage : closeImage style : UIBarButtonItemStylePlain target : self  action :@selector(actionBack :)];
     buttonClose.tintColor = nil;
     self.navigationItem.leftBarButtonItem = buttonClose;
-    
     self.buttonBack =[[UIBarButtonItem alloc] initWithImage : previousImage style : UIBarButtonItemStylePlain target : self action :@selector(navigateBack :)];
-    
     self.buttonNext =[[UIBarButtonItem alloc]initWithImage : nextImage style : UIBarButtonItemStylePlain target : self action :@selector(navigateNext :)];
-    
     self.toolbarItems = @[self.buttonBack, self.buttonNext];
     
     [self updateToolbarButtons];
@@ -336,7 +273,7 @@
 
 - (void)actionBack:(id)sender {
     if ([self.navigationController isKindOfClass:[WebViewCustomNavigationController class]]) {
-        ((WebViewCustomNavigationController*)self.navigationController).allowDismiss = YES;
+        [self.navigationController dismissViewControllerAnimated:NO completion:nil];
     }
     if ([self.navigationController.viewControllers indexOfObject:self] != 0) {
         // we are pushed on a outer navigationcontroller and so we pop just ourself
@@ -346,15 +283,14 @@
     } else {
         // we are the root and that is only possible if the navigation controller was manually generated in the plugin
         CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"Successful in opening WebOverlayingPlugin"];
+        [pluginResult setKeepCallbackAsBool:true];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:self.command.callbackId];
     }
 }
 
 - (void)dealloc {
-    //yo self.webView.delegate = nil;
     [self.webView stopLoading];
 }
-
 
 // This selector is called when something is loaded in our webview
 // By something I don't mean anything but just "some" :
@@ -362,7 +298,6 @@
 //  - sub iframes document
 //
 // But all images, xmlhttprequest, css, ... files/requests doesn't generate such events :/
-
 
 - (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler {
     NSURL* url = navigationAction.request.URL;
@@ -384,15 +319,15 @@
             }
         } else {
             pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsArray:@[]];
+            
         }
+        [pluginResult setKeepCallbackAsBool:true];
         [self.commandDelegate sendPluginResult:pluginResult callbackId:scriptCallbackId];
         decisionHandler(WKNavigationActionPolicyCancel);
         return;
     }
     
     NSString *requestString = [[navigationAction.request URL] absoluteString];
-    
-    //NSLog(@"request : %@",requestString);
     
     if ([requestString hasPrefix:@"js-frame:"]) {
         
@@ -414,8 +349,17 @@
             } else {
                 // we are the root and that is only possible if the navigation controller was manually generated in the plugin
                 CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"Successful in closing WebOverlayingPlugin"];
+                [pluginResult setKeepCallbackAsBool:true];
                 [self.commandDelegate sendPluginResult:pluginResult callbackId:self.command.callbackId];
             }
+        }
+        if ([function isEqualToString:@"scanCode"])
+        {
+                // we are the root and that is only possible if the navigation controller was manually generated in the plugin
+                CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:@"code_scanner"];
+            [pluginResult setKeepCallbackAsBool:true];
+                [self.commandDelegate sendPluginResult:pluginResult callbackId:self.command.callbackId];
+            
         }
         decisionHandler(WKNavigationActionPolicyAllow);
         return;
