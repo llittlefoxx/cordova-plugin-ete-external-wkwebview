@@ -61,6 +61,10 @@
     webViewController.command = command;
     webViewController.title = titleString;
     
+    if (@available(iOS 13, *)) {
+        webViewController.modalInPresentation = true;
+    }
+    
     if ([webViewType isEqualToString :@"simple"]){
         
         [navController setNavigationBarHidden : NO animated : NO];
